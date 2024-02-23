@@ -1,10 +1,11 @@
 .idea
 itvg-venv
-me-venv
+emr-env
 itv-ghactivity
 data/itv-github
 data.zip
 *.zip
 .DS_Store
+.vscode
 archive
 airflow
