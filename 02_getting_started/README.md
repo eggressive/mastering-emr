@@ -27,7 +27,5 @@ PYTHONPATH=/usr/lib/spark/python:/usr/lib/spark/python/lib/py4j-0.10.9.2-src.zip
 * Try running the application using `spark-submit`. Make sure to run it from **itv-ghactivity** folder.
 
 ```
-spark-submit \
-    --master local \
-    app.py
+spark-submit --master local app.py
 ```
