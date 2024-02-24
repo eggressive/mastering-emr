@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-iam-policies.html#manually-tagged-resources
+# https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-iam-role.html
+# https://docs.aws.amazon.com/cli/latest/reference/emr/create-cluster.html
+# --custom-ami-id ami-02110143ce1b29a2d 15GB gp3 based on Encrypted_SPGi-LINUX2-Base-2024-01-31
+# --enable-debugging
+# --os-release-label "2.0.20240109.0" \
+
+# As with the default AMI, the minimum root volume size for a custom AMI is 10 GiB for Amazon EMR releases 6.9 and lower, and 15 GiB for Amazon EMR releases 6.10 and higher
+
+aws emr create-cluster \
+    --name "spgmi-grid-emr-dimitar1" \
+    --release-label "emr-6.15.0" \
+    --enable-debugging \
+    --log-uri "s3n://spgmi-grid/tmp/logs/dimitar1/" \
+    --service-role "arn:aws:iam::530710445070:role/Custom_EMR_DefaultRole_V2" \
+    --managed-scaling-policy '{"ComputeLimits":{"UnitType":"Instances","MinimumCapacityUnits":2,"MaximumCapacityUnits":11,"MaximumOnDemandCapacityUnits":6,"MaximumCoreCapacityUnits":4}}' \
+    --ec2-attributes '{"InstanceProfile":"EMR_EC2_DefaultRole","EmrManagedMasterSecurityGroup":"sg-a9b445e0","EmrManagedSlaveSecurityGroup":"sg-90b849d9","KeyName":"egsadmin","AdditionalMasterSecurityGroups":["sg-0d35d0fcc59940f20","sg-07735a3d0a83cc37d"],"AdditionalSlaveSecurityGroups":["sg-0d35d0fcc59940f20","sg-07735a3d0a83cc37d"],"ServiceAccessSecurityGroup":"sg-1c49bf55","SubnetId":"subnet-0a27c68511f620460"}' \
+    --instance-groups '[{"InstanceCount":2,"InstanceGroupType":"CORE","Name":"CORE","InstanceType":"m5.xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"VolumeType":"gp3","SizeInGB":32},"VolumesPerInstance":2}]}},{"InstanceCount":1,"InstanceGroupType":"MASTER","Name":"MASTER","InstanceType":"m5.xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"VolumeType":"gp3","SizeInGB":32},"VolumesPerInstance":2}]}}]' \
+    --tags 'UsedFor=Application Server' 'Owner=gridcomputing.support@spglobal.com' 'Description=Analytics Grid Services EMR' 'AccountingCode=0110-5353-650040' 'creatorid=EMR-Dimitar' 'for-use-with-amazon-emr-managed-policies=true' 'Datadog=False' 'Name=dev1-grid-emr-gp3' 'BU=MI' 'AppID=DCD35424-2A57-42EC-8656-4F02F30436CE' 'NoKernels=False' 'Environment=DEV' 'SupportGroup=Big Analytics Solutions' 'MaintenanceWindow=Sat-22:00-UTC' 'NoReboot=True' \
+    --applications Name=Hadoop Name=Hive Name=Spark Name=JupyterEnterpriseGateway \
+    --configurations '[{"Classification":"spark-hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}},{"Classification":"hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}}]' \
+    --ebs-root-volume-size "60" \
+    --step-concurrency-level "20" \
+    --scale-down-behavior "TERMINATE_AT_TASK_COMPLETION" \
+    --bootstrap-actions '[{"Args":[],"Name":"BootstrapBoto3","Path":"s3://spgmi-grid/tmp/dimitar/scripts/bootstrap.sh"}]' \
+    --auto-termination-policy IdleTimeout=7200 \
+    --region "us-east-1"
