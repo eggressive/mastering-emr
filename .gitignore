@@ -7,5 +7,6 @@ data.zip
 *.zip
 .DS_Store
 .vscode
+.env
 archive
 airflow
